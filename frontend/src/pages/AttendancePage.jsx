@@ -12,6 +12,9 @@ export default function AttendancePage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
 
+  const today = new Date();
+  const todayString = today.toISOString().split("T")[0];
+
   useEffect(() => {
     fetchData();
   }, [id]);
@@ -39,15 +42,61 @@ export default function AttendancePage() {
     1
   ).getDay();
 
+  // ✅ MONTHLY COUNT LOGIC
+  const currentMonth = currentDate.getMonth();
+  const currentYear = currentDate.getFullYear();
+
+  const monthlyAttendance = attendance.filter((a) => {
+    const d = new Date(a.date);
+    return (
+      d.getMonth() === currentMonth &&
+      d.getFullYear() === currentYear
+    );
+  });
+
+  const presentCount = monthlyAttendance.filter(
+    (a) => a.status === "Present"
+  ).length;
+
+  const absentCount = monthlyAttendance.filter(
+    (a) => a.status === "Absent"
+  ).length;
+
+  const handleDateClick = (day) => {
+    const clickedDate = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      day
+    );
+
+    const clickedString = formatDate(clickedDate);
+
+    if (clickedString > todayString) return;
+
+    setSelectedDate(clickedDate);
+  };
+
   const handleMark = async (status) => {
     if (!selectedDate) return;
 
+    const selectedString = formatDate(selectedDate);
+
+    const alreadyMarked = attendance.find(
+      (a) => a.date === selectedString
+    );
+
+    if (alreadyMarked) {
+      alert("Attendance already marked for this date.");
+      return;
+    }
+
     await markAttendance({
       employee_id: Number(id),
-      date: formatDate(selectedDate),
+      date: selectedString,
       status,
     });
 
+    setSelectedDate(null);
     fetchData();
   };
 
@@ -75,32 +124,49 @@ export default function AttendancePage() {
     for (let day = 1; day <= daysInMonth; day++) {
       const status = getStatus(day);
 
-      let colorClass =
+      const dateObj = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        day
+      );
+
+      const dateString = formatDate(dateObj);
+
+      const isFuture = dateString > todayString;
+      const isSelected =
+        selectedDate &&
+        formatDate(selectedDate) === dateString;
+      const isToday = dateString === todayString;
+
+      let baseStyle =
+        "h-12 flex items-center justify-center rounded-xl text-sm transition-all duration-300 ease-in-out transform";
+
+      let colorStyle =
         "bg-gray-100 hover:bg-gray-200 text-gray-800";
 
       if (status === "Present") {
-        colorClass =
+        colorStyle =
           "bg-green-500 text-white hover:bg-green-600";
+      } else if (status === "Absent") {
+        colorStyle =
+          "bg-red-500 text-white hover:bg-red-600";
+      } else if (isSelected) {
+        colorStyle =
+          "bg-blue-500 text-white scale-110 shadow-xl";
       }
 
-      if (status === "Absent") {
-        colorClass =
-          "bg-red-500 text-white hover:bg-red-600";
+      if (isFuture) {
+        colorStyle =
+          "bg-gray-200 text-gray-400 opacity-50 cursor-not-allowed";
       }
 
       days.push(
         <div
           key={day}
-          onClick={() =>
-            setSelectedDate(
-              new Date(
-                currentDate.getFullYear(),
-                currentDate.getMonth(),
-                day
-              )
-            )
-          }
-          className={`h-12 flex items-center justify-center rounded-lg cursor-pointer transition ${colorClass}`}
+          onClick={() => !isFuture && handleDateClick(day)}
+          className={`${baseStyle} ${colorStyle} ${
+            !isFuture ? "cursor-pointer" : ""
+          } ${isToday ? "border-2 border-blue-400" : ""}`}
         >
           {day}
         </div>
@@ -110,11 +176,39 @@ export default function AttendancePage() {
     return days;
   };
 
+  const selectedString =
+    selectedDate && formatDate(selectedDate);
+
+  const isAlreadyMarked = attendance.find(
+    (a) => a.date === selectedString
+  );
+
   return (
     <Layout>
       <h1 className="text-3xl font-semibold mb-8">
         Attendance — {employee?.full_name}
       </h1>
+
+      {/* ✅ MONTH SUMMARY CARDS */}
+      <div className="grid grid-cols-2 gap-6 mb-8">
+        <div className="bg-green-100 p-6 rounded-2xl shadow-sm">
+          <p className="text-sm text-green-700">
+            Present This Month
+          </p>
+          <p className="text-3xl font-bold text-green-800 mt-2">
+            {presentCount}
+          </p>
+        </div>
+
+        <div className="bg-red-100 p-6 rounded-2xl shadow-sm">
+          <p className="text-sm text-red-700">
+            Absent This Month
+          </p>
+          <p className="text-3xl font-bold text-red-800 mt-2">
+            {absentCount}
+          </p>
+        </div>
+      </div>
 
       <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
         {/* Month Header */}
@@ -153,26 +247,23 @@ export default function AttendancePage() {
           </button>
         </div>
 
-        {/* Weekday Labels */}
-        <div className="grid grid-cols-7 text-center text-sm text-gray-400 mb-3">
-          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
-            (day) => (
-              <div key={day}>{day}</div>
-            )
-          )}
-        </div>
-
-        {/* Calendar Grid */}
         <div className="grid grid-cols-7 gap-3">
           {renderDays()}
         </div>
 
-        {/* Buttons */}
         <div className="flex gap-4 mt-8">
-          <Button onClick={() => handleMark("Present")}>
+          <Button
+            disabled={!selectedDate || isAlreadyMarked}
+            onClick={() => handleMark("Present")}
+          >
             Mark Present
           </Button>
-          <Button variant="danger" onClick={() => handleMark("Absent")}>
+
+          <Button
+            variant="danger"
+            disabled={!selectedDate || isAlreadyMarked}
+            onClick={() => handleMark("Absent")}
+          >
             Mark Absent
           </Button>
         </div>

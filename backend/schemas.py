@@ -1,8 +1,12 @@
 from pydantic import BaseModel, EmailStr
 from datetime import date
 
+
+# =========================
+# EMPLOYEE SCHEMAS
+# =========================
+
 class EmployeeCreate(BaseModel):
-    employee_id: str
     full_name: str
     email: EmailStr
     department: str
@@ -18,6 +22,10 @@ class EmployeeResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
+# =========================
+# ATTENDANCE SCHEMAS
+# =========================
 
 class AttendanceCreate(BaseModel):
     employee_id: int
