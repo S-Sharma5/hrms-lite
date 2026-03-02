@@ -7,11 +7,7 @@ import Loading from "../components/Loading";
 import EmptyState from "../components/EmptyState";
 import ErrorState from "../components/ErrorState";
 
-import {
-  getEmployees,
-  createEmployee,
-  deleteEmployee,
-} from "../api/api";
+import { getEmployees, createEmployee, deleteEmployee } from "../api/api";
 
 export default function Dashboard() {
   const [employees, setEmployees] = useState([]);
@@ -53,7 +49,7 @@ export default function Dashboard() {
   // ================= SEARCH =================
   useEffect(() => {
     const filtered = employees.filter((emp) =>
-      emp.full_name.toLowerCase().includes(search.toLowerCase())
+      emp.full_name.toLowerCase().includes(search.toLowerCase()),
     );
     setFilteredEmployees(filtered);
   }, [search, employees]);
@@ -155,13 +151,11 @@ export default function Dashboard() {
     <Layout>
       {/* Header */}
       <div className="flex justify-between items-center mb-10">
-        <h1 className="text-4xl font-bold tracking-tight text-gray-900">
+        <h1 className="text-4xl font-semibold tracking-tight text-white/95">
           Employee Dashboard
         </h1>
 
-        <Button onClick={() => setShowModal(true)}>
-          + Create Employee
-        </Button>
+        <Button onClick={() => setShowModal(true)}>+ Create Employee</Button>
       </div>
 
       {/* Search */}
@@ -188,10 +182,7 @@ export default function Dashboard() {
               key={emp.id}
               className="transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 rounded-2xl"
             >
-              <EmployeeCard
-                employee={emp}
-                onDelete={handleDelete}
-              />
+              <EmployeeCard employee={emp} onDelete={handleDelete} />
             </div>
           ))}
         </div>
@@ -205,26 +196,19 @@ export default function Dashboard() {
           </h2>
 
           {formErrors.general && (
-            <p className="text-red-400 text-sm mb-4">
-              {formErrors.general}
-            </p>
+            <p className="text-red-400 text-sm mb-4">{formErrors.general}</p>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
-
             {/* Full Name */}
             <div>
               <input
                 type="text"
                 placeholder="Full Name"
                 value={form.full_name}
-                onChange={(e) =>
-                  handleChange("full_name", e.target.value)
-                }
+                onChange={(e) => handleChange("full_name", e.target.value)}
                 className={`w-full px-4 py-2 rounded-xl border bg-white/80 text-gray-900 text-sm shadow-sm focus:ring-2 focus:ring-purple-400 transition ${
-                  formErrors.full_name
-                    ? "border-red-400"
-                    : "border-white/30"
+                  formErrors.full_name ? "border-red-400" : "border-white/30"
                 }`}
               />
               {formErrors.full_name && (
@@ -240,19 +224,13 @@ export default function Dashboard() {
                 type="email"
                 placeholder="Email Address"
                 value={form.email}
-                onChange={(e) =>
-                  handleChange("email", e.target.value)
-                }
+                onChange={(e) => handleChange("email", e.target.value)}
                 className={`w-full px-4 py-2 rounded-xl border bg-white/80 text-gray-900 text-sm shadow-sm focus:ring-2 focus:ring-purple-400 transition ${
-                  formErrors.email
-                    ? "border-red-400"
-                    : "border-white/30"
+                  formErrors.email ? "border-red-400" : "border-white/30"
                 }`}
               />
               {formErrors.email && (
-                <p className="text-red-400 text-xs mt-1">
-                  {formErrors.email}
-                </p>
+                <p className="text-red-400 text-xs mt-1">{formErrors.email}</p>
               )}
             </div>
 
@@ -262,9 +240,7 @@ export default function Dashboard() {
                 type="text"
                 placeholder="Department (Optional)"
                 value={form.department}
-                onChange={(e) =>
-                  handleChange("department", e.target.value)
-                }
+                onChange={(e) => handleChange("department", e.target.value)}
                 className="w-full px-4 py-2 rounded-xl border border-white/30 bg-white/80 text-gray-900 text-sm shadow-sm focus:ring-2 focus:ring-purple-400 transition"
               />
             </div>
